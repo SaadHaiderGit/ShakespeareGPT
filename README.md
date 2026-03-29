@@ -1,6 +1,6 @@
 # ShakespeareGPT
 
-This project is an Ollama-powered chatbot that takes questions about Shakespeare and his plays and sonnets. It uses embeddings created from public domain documents of his works to answer questions, and can also lookup general facts about Shakespeare and his life.
+This project is an Ollama-powered chatbot with RAG capabilities that takes questions about Shakespeare and his plays and sonnets. It uses embeddings created from public domain documents of his works to answer questions, and can also lookup general facts about Shakespeare and his life.
 
 `shakespeare_docs` holds the embeddings, which were created by `store_docs.py`.
 
