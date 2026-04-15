@@ -46,7 +46,9 @@ def setup_model() -> Orchestrator:
         Action: doc_search[Romeo]
         Action: facts[birthday]
 
-        If you fail to follow this format, your answer will not be accepted.
+        IMPORTANT: You may ONLY answer using information returned by your tools.
+        If the tool returns no relevant information, say "I don't have enough information to answer that."
+        Never use your own training knowledge to answer. If you cannot find it via a tool, do not answer.
     """
 
     # Create models and agents

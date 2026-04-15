@@ -10,6 +10,7 @@ class Orchestrator:
         #print(f"[Orchestrator] Routed to agent: {agent_name}")
         agent = self.agents.get(agent_name)
         if agent:
-            agent.run(user_input)
+            return agent.run(user_input)
         else:
             print("No agent found for the request.")
+            return "No agent found for the request."

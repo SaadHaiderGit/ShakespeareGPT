@@ -1,0 +1,11 @@
+# Core LangChain packages
+langchain
+langchain-ollama
+langchain-community
+langchain-text-splitters
+
+# Vector store (use faiss-gpu if CUDA is available)
+faiss-cpu
+
+# Streamlit frontend
+streamlit
