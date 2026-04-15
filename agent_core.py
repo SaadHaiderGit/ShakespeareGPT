@@ -3,28 +3,34 @@ import re
 # Max conversation turns kept in context before compaction is needed
 MAX_HISTORY = 10
 
+# Prompt suffixes injected based on the active response style
+STYLE_INSTRUCTIONS = {
+    "concise":     "Answer in 1-3 sentences. Be direct, no elaboration.",
+    "explanatory": "Answer thoroughly with context, examples, and relevant details.",
+}
+
 class AgentCore:
-    def __init__(self, model, tools: dict[str, callable], description: str):
+    def __init__(self, model, tools: dict[str, callable], description: str, response_style: str = "concise"):
         self.llm = model
         self.tools = tools
         self.description = description
+        self.response_style = response_style  # "concise" | "explanatory"
         self.history = []  # list of {"user": ..., "assistant": ...}
 
     def _build_history_block(self) -> str:
-        # Serialise history turns into a plain-text block for the prompt
+        # Serialise history turns into a plain-text block prepended to the prompt
         if not self.history:
             return ""
         lines = [f"User: {t['user']}\nAssistant: {t['assistant']}" for t in self.history]
         return "\n\n".join(lines) + "\n\n"
 
     def compact(self):
-        # Summarise full history into a single entry to free up context space
+        # Summarise full history into one entry to free context space
         if not self.history:
             return
-        history_text = self._build_history_block()
         summary_prompt = (
             "Summarise the following Shakespeare Q&A conversation in 3-5 sentences, "
-            "preserving key facts mentioned:\n\n" + history_text
+            "preserving key facts mentioned:\n\n" + self._build_history_block()
         )
         summary = self.llm.invoke(summary_prompt).content.strip()
         self.history = [{"user": "[Compacted history]", "assistant": summary}]
@@ -51,9 +57,9 @@ class AgentCore:
             return f"Tool '{tool_name}' failed to execute. Error: {e}"
 
     def run(self, user_input: str):
-        # Prepend conversation history so the LLM can resolve follow-up references
-        history_block = self._build_history_block()
-        prompt = f"{self.description}\n\n{history_block}Question: {user_input}"
+        # Prepend history and active style instruction to the prompt
+        style_note = STYLE_INSTRUCTIONS.get(self.response_style, STYLE_INSTRUCTIONS["concise"])
+        prompt = f"{self.description}\n\nResponse style: {style_note}\n\n{self._build_history_block()}Question: {user_input}"
         response = self.llm.invoke(prompt).content
         answer = response[response.find("Final Answer:") + 13:].strip()
         print("LLM:", answer, "\n")
@@ -62,7 +68,7 @@ class AgentCore:
             self._execute_tool(tool_name, param)
         else:
             print("\nNo valid Action step found.")
-        # Append turn and enforce MAX_HISTORY cap
+        # Append turn; cap at MAX_HISTORY (oldest turns dropped)
         self.history.append({"user": user_input, "assistant": answer})
         if len(self.history) > MAX_HISTORY:
             self.history = self.history[-MAX_HISTORY:]
