@@ -50,7 +50,7 @@ rm app.py requirements.txt .gitignore CLAUDE.md
 ---
 
 ## CP-003 — Persistent chat history + context indicator (2026-04-15)
-**Git commit:** uncommitted (working tree)
+**Git commit:** `d4320bd`
 **State:** 10-turn rolling history in AgentCore. Compact button summarises history via LLM. Streamlit sidebar shows context fill progress bar.
 
 | File | Change |
@@ -66,7 +66,7 @@ git checkout 2034d15 -- agent_core.py app.py
 ---
 
 ## CP-004 — Response style toggle (2026-04-15)
-**Git commit:** uncommitted (working tree)
+**Git commit:** `d4320bd`
 **State:** Concise/Explanatory mode. Style instruction injected into LLM prompt. Sidebar radio in Streamlit.
 
 | File | Change |
@@ -78,6 +78,21 @@ git checkout 2034d15 -- agent_core.py app.py
 ```bash
 git checkout 2034d15 -- agent_core.py app.py
 # then re-apply CP-003 changes manually, or keep a CP-003 branch
+```
+
+---
+
+## CP-005 — RAG k=3 (2026-04-15)
+**Git commit:** uncommitted (working tree)
+**State:** `doc_search` returns top 3 FAISS chunks joined together instead of just 1.
+
+| File | Change |
+|---|---|
+| `tools.py` | `k=3`, results joined with `\n\n` |
+
+**Rollback to CP-004:**
+```bash
+git checkout d4320bd -- tools.py
 ```
 
 ---
