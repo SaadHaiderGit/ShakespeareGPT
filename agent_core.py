@@ -57,17 +57,32 @@ class AgentCore:
             return f"Tool '{tool_name}' failed to execute. Error: {e}"
 
     def run(self, user_input: str):
-        # Prepend history and active style instruction to the prompt
         style_note = STYLE_INSTRUCTIONS.get(self.response_style, STYLE_INSTRUCTIONS["concise"])
-        prompt = f"{self.description}\n\nResponse style: {style_note}\n\n{self._build_history_block()}Question: {user_input}"
-        response = self.llm.invoke(prompt).content
-        answer = response[response.find("Final Answer:") + 13:].strip()
+        base_prompt = (
+            f"{self.description}\n\n"
+            f"Response style: {style_note}\n\n"
+            f"{self._build_history_block()}"
+            f"Question: {user_input}\n\n"
+            f"Provide only your Thought and Action steps. Stop after the Action line."
+        )
+
+        # Step 1 — get Thought + Action from LLM
+        step1 = self.llm.invoke(base_prompt).content
+
+        # Step 2 — run the real tool and get actual observation
+        tool_name, param = self._extract_action(step1)
+        observation = self._execute_tool(tool_name, param) if tool_name else "No tool matched. Answer from general knowledge."
+
+        # Step 3 — feed real observation back; LLM generates grounded Final Answer
+        step2_prompt = (
+            f"{base_prompt}\n\n{step1}\n"
+            f"Observation: {observation}\n\n"
+            f"Now provide your Final Answer based solely on the Observation above."
+        )
+        step2 = self.llm.invoke(step2_prompt).content
+        answer = (step2[step2.find("Final Answer:") + 13:] if "Final Answer:" in step2 else step2).strip()
+
         print("LLM:", answer, "\n")
-        tool_name, param = self._extract_action(response)
-        if tool_name:
-            self._execute_tool(tool_name, param)
-        else:
-            print("\nNo valid Action step found.")
         # Append turn; cap at MAX_HISTORY (oldest turns dropped)
         self.history.append({"user": user_input, "assistant": answer})
         if len(self.history) > MAX_HISTORY:

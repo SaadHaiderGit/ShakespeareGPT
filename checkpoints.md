@@ -83,7 +83,7 @@ git checkout 2034d15 -- agent_core.py app.py
 ---
 
 ## CP-005 — RAG k=3 (2026-04-15)
-**Git commit:** uncommitted (working tree)
+**Git commit:** `e09e0c3`
 **State:** `doc_search` returns top 3 FAISS chunks joined together instead of just 1.
 
 | File | Change |
@@ -93,6 +93,21 @@ git checkout 2034d15 -- agent_core.py app.py
 **Rollback to CP-004:**
 ```bash
 git checkout d4320bd -- tools.py
+```
+
+---
+
+## CP-006 — Real tool feedback loop (2026-04-15)
+**Git commit:** uncommitted (working tree)
+**State:** `AgentCore.run()` split into two LLM calls — step1 gets Action, real tool runs, step2 gets Final Answer from real Observation.
+
+| File | Change |
+|---|---|
+| `agent_core.py` | `run()` rewritten as two-step LLM cycle |
+
+**Rollback to CP-005:**
+```bash
+git checkout e09e0c3 -- agent_core.py
 ```
 
 ---
