@@ -67,21 +67,33 @@ Loads `ShakespearePlays.txt` and `ShakespeareSonnets.txt` from `docs/`, splits t
    ```
    Note: embedding the full Shakespeare corpus takes several minutes.
 
-4. Start the chatbot:
+4. Start the chatbot — choose one of two interfaces:
+
+   **Option 1 — CLI**
    ```
    python main.py
    ```
+
+   **Option 2 — Streamlit web UI**
+   ```
+   streamlit run app.py
+   ```
+   Opens in your browser at `http://localhost:8501`.
 
 ---
 
 ## Usage
 
-After running `main.py`, you'll see an interactive prompt. Type any question about Shakespeare and press Enter. Type `exit` to quit.
+### CLI
+After running `main.py`, type any question about Shakespeare and press Enter. Type `exit` to quit.
 
 ```
 Welcome to ShakespeareGPT. Ask a question, and our LLM chatbot will answer (type 'exit' to quit):
 User: What happens in Romeo and Juliet?
 LLM: ...
 ```
+
+### Streamlit
+After running `streamlit run app.py`, the app opens in your browser. Type your question in the chat input at the bottom and press Enter. The sidebar lets you switch between Concise and Explanatory response styles and shows how much of the conversation context has been used.
 
 Response times vary depending on your hardware — expect up to a minute or two per query when running on CPU.
