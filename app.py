@@ -66,9 +66,12 @@ if prompt := st.chat_input("Ask about Shakespeare..."):
         st.write(prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
-            answer = st.session_state.router.run(prompt)
-        st.write(answer)
+        # Step 1: tool lookup is blocking — show spinner until observation is ready
+        with st.spinner("Searching documents..."):
+            step2_prompt = agent._prepare_answer_prompt(prompt)
+        # Step 2: stream Final Answer tokens directly into the chat bubble
+        answer = st.write_stream(agent._stream_answer(step2_prompt))
+        agent._record_turn(prompt, answer)
 
     st.session_state.messages.append({"role": "assistant", "content": answer})
     st.rerun()  # Refresh sidebar turn counter after each message

@@ -56,7 +56,8 @@ class AgentCore:
         except Exception as e:
             return f"Tool '{tool_name}' failed to execute. Error: {e}"
 
-    def run(self, user_input: str):
+    def _prepare_answer_prompt(self, user_input: str) -> str:
+        # Step 1: get Thought+Action from LLM, run real tool, return ready step2 prompt
         style_note = STYLE_INSTRUCTIONS.get(self.response_style, STYLE_INSTRUCTIONS["concise"])
         base_prompt = (
             f"{self.description}\n\n"
@@ -65,26 +66,46 @@ class AgentCore:
             f"Question: {user_input}\n\n"
             f"Provide only your Thought and Action steps. Stop after the Action line."
         )
-
-        # Step 1 — get Thought + Action from LLM
         step1 = self.llm.invoke(base_prompt).content
-
-        # Step 2 — run the real tool and get actual observation
         tool_name, param = self._extract_action(step1)
         observation = self._execute_tool(tool_name, param) if tool_name else "No tool matched. Answer from general knowledge."
-
-        # Step 3 — feed real observation back; LLM generates grounded Final Answer
-        step2_prompt = (
+        return (
             f"{base_prompt}\n\n{step1}\n"
             f"Observation: {observation}\n\n"
             f"Now provide your Final Answer based solely on the Observation above."
         )
-        step2 = self.llm.invoke(step2_prompt).content
-        answer = (step2[step2.find("Final Answer:") + 13:] if "Final Answer:" in step2 else step2).strip()
 
-        print("LLM:", answer, "\n")
-        # Append turn; cap at MAX_HISTORY (oldest turns dropped)
+    def _extract_answer(self, text: str) -> str:
+        # Pull the Final Answer section out of a full LLM response
+        return (text[text.find("Final Answer:") + 13:] if "Final Answer:" in text else text).strip()
+
+    def _record_turn(self, user_input: str, answer: str):
+        # Append turn to history and enforce MAX_HISTORY cap
         self.history.append({"user": user_input, "assistant": answer})
         if len(self.history) > MAX_HISTORY:
             self.history = self.history[-MAX_HISTORY:]
+
+    def _stream_answer(self, step2_prompt: str):
+        # Yield Final Answer tokens from a streaming LLM call; skips preamble before "Final Answer:"
+        in_answer = False
+        buf = ""
+        for chunk in self.llm.stream(step2_prompt):
+            text = chunk.content
+            if not in_answer:
+                buf += text
+                if "Final Answer:" in buf:
+                    in_answer = True
+                    after = buf[buf.find("Final Answer:") + 13:]
+                    if after:
+                        yield after
+            else:
+                yield text
+
+    def run(self, user_input: str) -> str:
+        # Non-streaming path used by CLI
+        step2_prompt = self._prepare_answer_prompt(user_input)
+        response = self.llm.invoke(step2_prompt).content
+        answer = self._extract_answer(response)
+        print("LLM:", answer, "\n")
+        self._record_turn(user_input, answer)
         return answer

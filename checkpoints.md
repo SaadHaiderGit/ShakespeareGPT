@@ -98,7 +98,7 @@ git checkout d4320bd -- tools.py
 ---
 
 ## CP-006 — Real tool feedback loop (2026-04-15)
-**Git commit:** uncommitted (working tree)
+**Git commit:** `6a406ba`
 **State:** `AgentCore.run()` split into two LLM calls — step1 gets Action, real tool runs, step2 gets Final Answer from real Observation.
 
 | File | Change |
@@ -108,6 +108,22 @@ git checkout d4320bd -- tools.py
 **Rollback to CP-005:**
 ```bash
 git checkout e09e0c3 -- agent_core.py
+```
+
+---
+
+## CP-007 — Streaming LLM response (2026-04-15)
+**Git commit:** uncommitted (working tree)
+**State:** step1 (tool lookup) blocking with spinner; step2 (Final Answer) streams token-by-token via `st.write_stream`. CLI `run()` unchanged.
+
+| File | Change |
+|---|---|
+| `agent_core.py` | Extracted `_prepare_answer_prompt`, `_extract_answer`, `_record_turn`, `_stream_answer` from `run()` |
+| `app.py` | Chat handler uses `_prepare_answer_prompt` + `st.write_stream(_stream_answer)` |
+
+**Rollback to CP-006:**
+```bash
+git checkout 6a406ba -- agent_core.py app.py
 ```
 
 ---
