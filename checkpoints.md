@@ -145,7 +145,7 @@ git checkout 9c62a8c -- agent_core.py app.py
 ---
 
 ## CP-009 — UI polish: word baselines, ChatGPT layout, subtle sidebar (2026-04-15)
-**Git commit:** uncommitted (working tree)
+**Git commit:** `025863d`
 **State:** Word floors added to style instructions. Custom HTML chat bubbles replace st.chat_message. Sidebar uses small HTML labels.
 
 | File | Change |
@@ -156,6 +156,24 @@ git checkout 9c62a8c -- agent_core.py app.py
 **Rollback to CP-008:**
 ```bash
 git checkout 085d435 -- agent_core.py app.py
+```
+
+---
+
+## CP-010 — MAX_STEPS=1, HuggingFace embedding index (2026-04-15)
+**Git commit:** uncommitted (working tree)
+**State:** Single retrieval step with relevance-reasoning instruction. New store_docs_hf.py builds a parallel index with local HF embeddings.
+
+| File | Change |
+|---|---|
+| `agent_core.py` | `MAX_STEPS` 3→1; final answer prompt includes relevance reasoning instruction |
+| `store_docs_hf.py` | New — HuggingFace embeddings, saves to `shakespeare_docs_hf/` |
+| `requirements.txt` | Added `sentence-transformers`, `langchain-huggingface` |
+
+**Rollback to CP-009:**
+```bash
+git checkout 025863d -- agent_core.py requirements.txt
+rm store_docs_hf.py
 ```
 
 ---

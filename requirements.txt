@@ -9,3 +9,7 @@ faiss-cpu
 
 # Streamlit frontend
 streamlit
+
+# Local HuggingFace embeddings for store_docs_hf.py (faster retrieval, no Ollama round-trip)
+sentence-transformers
+langchain-huggingface

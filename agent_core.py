@@ -3,8 +3,8 @@ import re
 # Max conversation turns kept in context before compaction is needed
 MAX_HISTORY = 10
 
-# Max tool-use iterations per question before forcing a Final Answer
-MAX_STEPS = 3
+# Single retrieval step: fetch once, reason on relevance, construct answer
+MAX_STEPS = 1
 
 # Prompt suffixes injected based on the active response style
 STYLE_INSTRUCTIONS = {
@@ -60,8 +60,7 @@ class AgentCore:
             return f"Tool '{tool_name}' failed to execute. Error: {e}"
 
     def _prepare_answer_prompt(self, user_input: str) -> str:
-        # Multi-step ReAct loop: repeat Thought→Action→Observation up to MAX_STEPS times,
-        # then return a prompt that asks for the Final Answer over the full transcript
+        # Fetch once (MAX_STEPS=1), verify relevance, construct grounded answer
         style_note = STYLE_INSTRUCTIONS.get(self.response_style, STYLE_INSTRUCTIONS["concise"])
         transcript = (
             f"{self.description}\n\n"
@@ -81,7 +80,13 @@ class AgentCore:
             print(f"[Step {step + 1}] {tool_name}[{param}]")
             transcript += f"\n{response}\nObservation: {observation}\n"
 
-        return transcript + "\nNow provide your Final Answer based on the Observations above."
+        return (
+            transcript +
+            "\nFirst, assess whether the Observation is relevant to the question. "
+            "If it is, construct your answer from it. "
+            "If it is not relevant or insufficient, say so honestly rather than guessing. "
+            "Now provide your Final Answer."
+        )
 
     def _extract_answer(self, text: str) -> str:
         # Pull the Final Answer section out of a full LLM response
