@@ -3,6 +3,9 @@ import re
 # Max conversation turns kept in context before compaction is needed
 MAX_HISTORY = 10
 
+# Max tool-use iterations per question before forcing a Final Answer
+MAX_STEPS = 3
+
 # Prompt suffixes injected based on the active response style
 STYLE_INSTRUCTIONS = {
     "concise":     "Answer in 1-3 sentences. Be direct, no elaboration.",
@@ -57,23 +60,28 @@ class AgentCore:
             return f"Tool '{tool_name}' failed to execute. Error: {e}"
 
     def _prepare_answer_prompt(self, user_input: str) -> str:
-        # Step 1: get Thought+Action from LLM, run real tool, return ready step2 prompt
+        # Multi-step ReAct loop: repeat Thought→Action→Observation up to MAX_STEPS times,
+        # then return a prompt that asks for the Final Answer over the full transcript
         style_note = STYLE_INSTRUCTIONS.get(self.response_style, STYLE_INSTRUCTIONS["concise"])
-        base_prompt = (
+        transcript = (
             f"{self.description}\n\n"
             f"Response style: {style_note}\n\n"
             f"{self._build_history_block()}"
-            f"Question: {user_input}\n\n"
-            f"Provide only your Thought and Action steps. Stop after the Action line."
+            f"Question: {user_input}\n"
         )
-        step1 = self.llm.invoke(base_prompt).content
-        tool_name, param = self._extract_action(step1)
-        observation = self._execute_tool(tool_name, param) if tool_name else "No tool matched. Answer from general knowledge."
-        return (
-            f"{base_prompt}\n\n{step1}\n"
-            f"Observation: {observation}\n\n"
-            f"Now provide your Final Answer based solely on the Observation above."
-        )
+        for step in range(MAX_STEPS):
+            step_prompt = transcript + "\nProvide your next Thought and Action. Stop after the Action line."
+            response = self.llm.invoke(step_prompt).content
+            tool_name, param = self._extract_action(response)
+            if not tool_name:
+                # LLM produced no action — enough context to answer
+                transcript += f"\n{response}\n"
+                break
+            observation = self._execute_tool(tool_name, param)
+            print(f"[Step {step + 1}] {tool_name}[{param}]")
+            transcript += f"\n{response}\nObservation: {observation}\n"
+
+        return transcript + "\nNow provide your Final Answer based on the Observations above."
 
     def _extract_answer(self, text: str) -> str:
         # Pull the Final Answer section out of a full LLM response

@@ -66,8 +66,8 @@ if prompt := st.chat_input("Ask about Shakespeare..."):
         st.write(prompt)
 
     with st.chat_message("assistant"):
-        # Step 1: tool lookup is blocking — show spinner until observation is ready
-        with st.spinner("Searching documents..."):
+        # ReAct loop: runs up to MAX_STEPS tool calls before streaming the Final Answer
+        with st.spinner("Reasoning and searching documents..."):
             step2_prompt = agent._prepare_answer_prompt(prompt)
         # Step 2: stream Final Answer tokens directly into the chat bubble
         answer = st.write_stream(agent._stream_answer(step2_prompt))

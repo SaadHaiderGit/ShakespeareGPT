@@ -113,7 +113,7 @@ git checkout e09e0c3 -- agent_core.py
 ---
 
 ## CP-007 — Streaming LLM response (2026-04-15)
-**Git commit:** uncommitted (working tree)
+**Git commit:** `9c62a8c`
 **State:** step1 (tool lookup) blocking with spinner; step2 (Final Answer) streams token-by-token via `st.write_stream`. CLI `run()` unchanged.
 
 | File | Change |
@@ -124,6 +124,22 @@ git checkout e09e0c3 -- agent_core.py
 **Rollback to CP-006:**
 ```bash
 git checkout 6a406ba -- agent_core.py app.py
+```
+
+---
+
+## CP-008 — Multi-step ReAct loop (2026-04-15)
+**Git commit:** uncommitted (working tree)
+**State:** `_prepare_answer_prompt()` loops up to MAX_STEPS=3, accumulating real Thought→Action→Observation turns before asking for Final Answer.
+
+| File | Change |
+|---|---|
+| `agent_core.py` | `MAX_STEPS = 3`; loop replaces single step1 in `_prepare_answer_prompt()` |
+| `app.py` | Spinner label updated |
+
+**Rollback to CP-007:**
+```bash
+git checkout 9c62a8c -- agent_core.py app.py
 ```
 
 ---
