@@ -129,7 +129,7 @@ git checkout 6a406ba -- agent_core.py app.py
 ---
 
 ## CP-008 — Multi-step ReAct loop (2026-04-15)
-**Git commit:** uncommitted (working tree)
+**Git commit:** `085d435`
 **State:** `_prepare_answer_prompt()` loops up to MAX_STEPS=3, accumulating real Thought→Action→Observation turns before asking for Final Answer.
 
 | File | Change |
@@ -140,6 +140,22 @@ git checkout 6a406ba -- agent_core.py app.py
 **Rollback to CP-007:**
 ```bash
 git checkout 9c62a8c -- agent_core.py app.py
+```
+
+---
+
+## CP-009 — UI polish: word baselines, ChatGPT layout, subtle sidebar (2026-04-15)
+**Git commit:** uncommitted (working tree)
+**State:** Word floors added to style instructions. Custom HTML chat bubbles replace st.chat_message. Sidebar uses small HTML labels.
+
+| File | Change |
+|---|---|
+| `agent_core.py` | `STYLE_INSTRUCTIONS` updated with min-word instructions |
+| `app.py` | Full layout rewrite — CSS injection, custom user bubble, full-width assistant, subtle sidebar |
+
+**Rollback to CP-008:**
+```bash
+git checkout 085d435 -- agent_core.py app.py
 ```
 
 ---

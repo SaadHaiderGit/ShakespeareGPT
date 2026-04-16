@@ -8,8 +8,8 @@ MAX_STEPS = 3
 
 # Prompt suffixes injected based on the active response style
 STYLE_INSTRUCTIONS = {
-    "concise":     "Answer in 1-3 sentences. Be direct, no elaboration.",
-    "explanatory": "Answer thoroughly with context, examples, and relevant details.",
+    "concise":     "Answer in at least 40 words but stay brief and direct. No lengthy elaboration.",
+    "explanatory": "Answer in at least 100 words. Be thorough — include context, examples, and relevant details.",
 }
 
 class AgentCore:
