@@ -161,7 +161,7 @@ git checkout 085d435 -- agent_core.py app.py
 ---
 
 ## CP-010 — MAX_STEPS=1, HuggingFace embedding index (2026-04-15)
-**Git commit:** uncommitted (working tree)
+**Git commit:** `313df4d`
 **State:** Single retrieval step with relevance-reasoning instruction. New store_docs_hf.py builds a parallel index with local HF embeddings.
 
 | File | Change |
