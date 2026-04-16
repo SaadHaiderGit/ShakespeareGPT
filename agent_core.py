@@ -5,6 +5,7 @@ class AgentCore:
         self.llm = model
         self.tools = tools
         self.description = description
+        self.memory = ""
 
     def _extract_action(self, text: str):
         # Match Action: tool[param] or fallback Action: [tool param]
@@ -28,11 +29,12 @@ class AgentCore:
             return f"Tool '{tool_name}' failed to execute. Error: {e}"
 
     def run(self, user_input: str):
-        prompt = f"{self.description}\n\nQuestion: {user_input}"
+        self.memory += user_input
+        prompt = f"{self.description}\n\n {self.memory}\n\n Question: {user_input}"
         response = self.llm.invoke(prompt).content
         answer = response[response.find("Final Answer:") + 13:]
+        self.memory += answer
         print("LLM:", answer, "\n")
-        #print(response)
         tool_name, param = self._extract_action(response)
         if tool_name:
             result = self._execute_tool(tool_name, param)
