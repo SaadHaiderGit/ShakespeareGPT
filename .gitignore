@@ -2,6 +2,9 @@
 .claude/
 CLAUDE.md
 
+# HuggingFace FAISS index (local only)
+shakespeare_docs_hf/
+
 # Python
 __pycache__/
 *.py[cod]
