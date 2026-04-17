@@ -82,9 +82,10 @@ class AgentCore:
 
         return (
             transcript +
-            "\nFirst, assess whether the Observation is relevant to the question. "
-            "If it is, construct your answer from it. "
-            "If it is not relevant or insufficient, say so honestly rather than guessing. "
+            "\nUsing the Observation above, construct the best possible answer to the question. "
+            "If the Observation is directly relevant, use it fully. "
+            "If it is partially relevant, synthesise what you can from it. "
+            "Only state you cannot answer if the Observation is completely unrelated to the question. "
             "Now provide your Final Answer."
         )
 
